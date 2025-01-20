@@ -324,11 +324,29 @@ public:
         std::lock_guard<std::mutex> lock1(imuLock);
         std::lock_guard<std::mutex> lock2(odoLock);
 
-        // make sure IMU data available for the scan
+        // Output relevant data for debugging
+        std::cout << "IMU Queue Size: " << imuQueue.size() << std::endl;
+        if (!imuQueue.empty()) {
+            std::cout << "IMU Front Stamp: " << stamp2Sec(imuQueue.front().header.stamp) 
+                    << ", TimeScanCur: " << timeScanCur << std::endl;
+            std::cout << "IMU Back Stamp: " << stamp2Sec(imuQueue.back().header.stamp) 
+                    << ", TimeScanEnd: " << timeScanEnd << std::endl;
+        } else {
+            std::cout << "IMU Queue is empty!" << std::endl;
+        }
+
+        if (laserCloudIn->points.empty()) {
+            std::cout << "Laser cloud is empty!" << std::endl;
+        } else {
+            std::cout << "LaserCloudIn Last Point Time: " << laserCloudIn->points.back().time << std::endl;
+        }
+
+        // Check IMU availability and synchronization
         if (imuQueue.empty() ||
             stamp2Sec(imuQueue.front().header.stamp) > timeScanCur ||
             stamp2Sec(imuQueue.back().header.stamp) < timeScanEnd)
         {
+            std::cout << "IMU data is not synchronized with scan data!" << std::endl;
             RCLCPP_INFO(get_logger(), "Waiting for IMU data ...");
             return false;
         }
