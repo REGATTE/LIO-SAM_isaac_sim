@@ -264,11 +264,11 @@ public:
         cloudHeader = currentCloudMsg.header;
         timeScanCur = stamp2Sec(cloudHeader.stamp);
         timeScanEnd = timeScanCur + laserCloudIn->points.back().time;
-    
-        // remove Nan
+
+        // remove the Nan Values
         vector<int> indices;
         pcl::removeNaNFromPointCloud(*laserCloudIn, *laserCloudIn, indices);
-
+    
         // check dense flag
         if (laserCloudIn->is_dense == false)
         {
@@ -664,7 +664,7 @@ public:
     void publishClouds()
     {
         cloudInfo.header = cloudHeader;
-        cloudInfo.cloud_deskewed  = publishCloud(pubExtractedCloud, extractedCloud, cloudHeader.stamp, lidarFrame);
+        cloudInfo.cloud_deskewed  = publishCloud(pubExtractedCloud, extractedCloud, cloudHeader.stamp, name + "/" + lidarFrame);
         pubLaserCloudInfo->publish(cloudInfo);
     }
 };

@@ -130,14 +130,14 @@ public:
             try
             {
                 tf2::fromMsg(tfBuffer->lookupTransform(
-                    lidarFrame, baselinkFrame, rclcpp::Time(0)), lidar2Baselink);
+                    name + "/" + lidarFrame, name + "/" + baselinkFrame, rclcpp::Time(0)), lidar2Baselink);
             }
             catch (tf2::TransformException ex)
             {
                 RCLCPP_ERROR(get_logger(), "%s", ex.what());
             }
             tf2::Stamped<tf2::Transform> tb(
-                tCur * lidar2Baselink, tf2_ros::fromMsg(odomMsg->header.stamp), odometryFrame);
+                tCur * lidar2Baselink, tf2_ros::fromMsg(odomMsg->header.stamp), name + "/" +  odometryFrame);
             tCur = tb;
         }
         geometry_msgs::msg::TransformStamped ts;
@@ -154,7 +154,7 @@ public:
             last_path_time = imuTime;
             geometry_msgs::msg::PoseStamped pose_stamped;
             pose_stamped.header.stamp = imuOdomQueue.back().header.stamp;
-            pose_stamped.header.frame_id = odometryFrame;
+            pose_stamped.header.frame_id = name + "/" +  odometryFrame;
             pose_stamped.pose = laserOdometry.pose.pose;
             imuPath.poses.push_back(pose_stamped);
             while(!imuPath.poses.empty() && stamp2Sec(imuPath.poses.front().header.stamp) < lidarOdomTime - 1.0)
@@ -162,7 +162,7 @@ public:
             if (pubImuPath->get_subscription_count() != 0)
             {
                 imuPath.header.stamp = imuOdomQueue.back().header.stamp;
-                imuPath.header.frame_id = odometryFrame;
+                imuPath.header.frame_id = name + "/" +  odometryFrame;
                 pubImuPath->publish(imuPath);
             }
         }
@@ -515,8 +515,8 @@ public:
         // publish odometry
         auto odometry = nav_msgs::msg::Odometry();
         odometry.header.stamp = thisImu.header.stamp;
-        odometry.header.frame_id = odometryFrame;
-        odometry.child_frame_id = "odom_imu";
+        odometry.header.frame_id = name + "/" + odometryFrame;
+        odometry.child_frame_id = name + "/" +  "odom_imu";
 
         // transform imu pose to ldiar
         gtsam::Pose3 imuPose = gtsam::Pose3(currentState.quaternion(), currentState.position());
